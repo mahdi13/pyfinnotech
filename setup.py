@@ -6,11 +6,11 @@ dependencies = [
     'nanohttp == 0.26.1',
     'pymlconf == 0.8.6',
 ]
-test_dependencies = ['nose']
+test_dependencies = ['nose', 'codecov']
 
 setup(
     name="pyfinnotech",
-    version='0.2.0',
+    version='0.2.1',
     author="mahdi13",
     tests_require=test_dependencies,
     extras_require={'test': test_dependencies},

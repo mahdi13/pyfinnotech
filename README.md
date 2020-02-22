@@ -3,6 +3,9 @@
 Python Finnotech Api Client
 
 [![Build Status](https://travis-ci.org/mahdi13/pyfinnotech.svg?branch=master)](https://travis-ci.org/mahdi13/pyfinnotech)
+[![Build Status](https://badge.fury.io/py/pyfinnotech.svg)](https://badge.fury.io/py/pyfinnotech.svg)
+[![Build Status](https://pypip.in/d/pyfinnotech/badge.png)](https://pypip.in/d/pyfinnotech/badge.png)
+[![Build Status](https://coveralls.io/repos/mahdi13/pyfinnotech/badge.png?branch=master)](https://coveralls.io/r/mahdi13/pyfinnotech?branch=master)
 
 Install using pypi:
 ```shell script
