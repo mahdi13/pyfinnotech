@@ -5,11 +5,9 @@ from uuid import uuid4
 
 import requests
 
+from pyfinnotech.const import URL_SANDBOX, URL_MAINNET
 from pyfinnotech.token import ClientCredentialToken
 from pyfinnotech.exceptions import FinnotechException
-
-URL_SANDBOX = 'https://sandboxapi.finnotech.ir'
-URL_MAINNET = 'https://sandboxapi.finnotech.ir'
 
 
 class FinnotechApiClient:
@@ -19,11 +17,13 @@ class FinnotechApiClient:
             client_secret=None,
             is_sandbox=False,
             logger: Logger = None,
-            requests_extra_kwargs: dict = None
+            requests_extra_kwargs: dict = None,
+            base_url=None
     ):
-        self.server_url = URL_SANDBOX if is_sandbox is True else URL_MAINNET
+        self.server_url = base_url or (URL_SANDBOX if is_sandbox is True else URL_MAINNET)
         self.logger = logger or logging.getLogger('pyfinnotech')
-        self.client_id = ''
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.requests_extra_kwargs = requests_extra_kwargs or {}
 
     @classmethod
@@ -52,7 +52,7 @@ class FinnotechApiClient:
                 **self.requests_extra_kwargs
             ).json()
         except Exception as e:
-            raise FinnotechException(f"Request error: {str(e)}")
+            raise FinnotechException(f"Request error: {str(e)}", logger=self.logger)
 
         return response
 
