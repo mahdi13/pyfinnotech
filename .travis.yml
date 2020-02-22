@@ -5,7 +5,7 @@ before_install:
   - pip install -U pip
 install:
   - pip install ".[test]" . # install package + test dependencies
-script: nosetests # run tests
+script: nosetests --with-coverage # run tests
 deploy:
   provider: pypi
   user: __token__
