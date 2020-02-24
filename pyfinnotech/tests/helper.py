@@ -4,10 +4,9 @@ import unittest
 from nanohttp import quickstart
 
 from pyfinnotech import FinnotechApiClient
-from pyfinnotech.tests.mock_api_server import FinnotechRootMockController
-
-mock_client_id = 'mock-api-client'
-mock_client_secret = 'mock-api-secret'
+from pyfinnotech.const import ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
+from pyfinnotech.tests.mock_api_server import FinnotechRootMockController, valid_mock_client_id, \
+    valid_mock_client_secret
 
 
 class ApiClientTestCase(unittest.TestCase):
@@ -31,9 +30,10 @@ class ApiClientTestCase(unittest.TestCase):
             block=False
         )
         cls.api_client = FinnotechApiClient(
-            client_id=mock_client_id,
-            client_secret=mock_client_secret,
-            base_url=f'http://localhost:{server_port}'
+            client_id=valid_mock_client_id,
+            client_secret=valid_mock_client_secret,
+            base_url=f'http://localhost:{server_port}',
+            scopes=ALL_SCOPE_CLIENT_CREDENTIALS + ALL_SCOPE_AUTHORIZATION_TOKEN
         )
         super().setUpClass()
 

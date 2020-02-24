@@ -15,6 +15,8 @@ class FinnotechApiClient:
             self,
             client_id,
             client_secret=None,
+            client_national_id=None,
+            scopes=None,
             is_sandbox=False,
             logger: Logger = None,
             requests_extra_kwargs: dict = None,
@@ -24,15 +26,22 @@ class FinnotechApiClient:
         self.logger = logger or logging.getLogger('pyfinnotech')
         self.client_id = client_id
         self.client_secret = client_secret
+        self.client_national_id = client_national_id
+        self.scopes = scopes or []
         self.requests_extra_kwargs = requests_extra_kwargs or {}
+        self._client_credential_token = None
 
     @classmethod
     def _generate_track_id(cls):
         return uuid4().hex
 
     @property
-    def _client_credential(self):
-        return ''
+    def client_credential(self) -> ClientCredentialToken:
+        if self._client_credential_token is not None and self._client_credential_token.is_valid is True:
+            pass
+        else:
+            self._client_credential_token = ClientCredentialToken.fetch(self)
+        return self._client_credential_token
 
     def _execute(self, uri, method='get', params=None, headers=None, body=None, error_mapper=None):
         params = params or dict()
@@ -50,7 +59,12 @@ class FinnotechApiClient:
                 params=params,
                 headers=headers,
                 **self.requests_extra_kwargs
-            ).json()
+            )
+            if response.status_code != 200:
+                raise FinnotechException(response.content.decode(), self.logger)
+
+            return response.json()
+
         except Exception as e:
             raise FinnotechException(f"Request error: {str(e)}", logger=self.logger)
 
@@ -61,9 +75,9 @@ class FinnotechApiClient:
         https://sandboxbeta.finnotech.ir/v2/boomrang-get-authorizationCode-token.html?sandbox=true
         :return:
         """
-        url = f'{self.base_url}/dev/v2/oauth2/token'
+        pass
 
-    def iban_inquiry(self, iban, client_credential_token=None):
+    def iban_inquiry(self, iban):
         """
         https://devbeta.finnotech.ir/oak-ibanInquiry.html
 
@@ -148,14 +162,13 @@ class FinnotechApiClient:
             raise ValueError(f'Bad iban: {iban}')
 
         url = f'/oak/v2/clients/{self.client_id}/ibanInquiry'
-        token = client_credential_token or ClientCredentialToken(self, client_credential_token)
         return self._execute(
             uri=url,
-            headers=token.generate_authorization_header(),
+            headers=self.client_credential.generate_authorization_header(),
             params={'iban': iban}
         )
 
-    def card_inquiry(self, card, client_credential_token=None):
+    def card_inquiry(self, card):
         """
         https://devbeta.finnotech.ir/card-information.html
 
@@ -211,13 +224,12 @@ class FinnotechApiClient:
             raise ValueError(f'Bad iban: {card}')
 
         url = f'/oak/v2/clients/{self.client_id}/cards/{card}'
-        token = client_credential_token or ClientCredentialToken(self, client_credential_token)
         return self._execute(
             uri=url,
-            headers=token.generate_authorization_header()
+            headers=self.client_credential.generate_authorization_header(),
         )
 
-    def standard_reliability(self, national_id, phone_number, otp, client_credential_token):
+    def standard_reliability(self, national_id, phone_number, otp):
         """
         https://sandboxbeta.finnotech.ir/v2/credit-standard-v3.html
         شرح: سرویس اعتبارسنجی استاندارد با گرفتن کد ملی، اطلاعات اعتبار صاحب کد ملی میدهد.
@@ -862,10 +874,8 @@ class FinnotechApiClient:
 
         url = f'/oak/v2/clients/{self.client_id}/users/{national_id}/standardReliability'
 
-        token = client_credential_token or ClientCredentialToken(self, client_credential_token)
-
         return self._execute(
             uri=url,
             params={'phoneNumber': phone_number, 'otp': otp},
-            headers=token.generate_authorization_header()
+            headers=self.client_credential.generate_authorization_header(),
         )
