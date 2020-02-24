@@ -158,7 +158,7 @@ class FinnotechApiClient:
 
         """
 
-        if iban is None or re.match('^IR[0-9]{26}$', iban):
+        if iban is None or not re.match('^IR[0-9]{24}$', iban):
             raise ValueError(f'Bad iban: {iban}')
 
         url = f'/oak/v2/clients/{self.client_id}/ibanInquiry'
@@ -227,7 +227,7 @@ class FinnotechApiClient:
         return self._execute(
             uri=url,
             headers=self.client_credential.generate_authorization_header(),
-        )
+        ).get('result')
 
     def standard_reliability(self, national_id, phone_number, otp):
         """
@@ -878,4 +878,4 @@ class FinnotechApiClient:
             uri=url,
             params={'phoneNumber': phone_number, 'otp': otp},
             headers=self.client_credential.generate_authorization_header(),
-        )
+        ).get('result')

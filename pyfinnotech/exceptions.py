@@ -4,4 +4,4 @@ class FinnotechException(Exception):
         :param message: error message
         """
         self.message = message
-        logger.error(f"Stexchange RPC Error: {message}")
+        logger.error(f"Finnotech api error: {message}")

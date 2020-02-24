@@ -10,9 +10,9 @@ client_invalid_mock_cards = [
 class CardValidationTestCase(ApiClientTestCase):
     def test_server_validate_card(self):
         for c in valid_mock_cards:
-            self.assertEqual('0', self.api_client.card_inquiry(c).get('result').get('result'))
+            self.assertEqual('0', self.api_client.card_inquiry(c).get('result'))
 
     def test_client_validate_card(self):
         for c in client_invalid_mock_cards:
             with self.assertRaises(ValueError):
-                self.assertEqual('0', self.api_client.card_inquiry(c).get('result').get('result'))
+                self.api_client.card_inquiry(c)

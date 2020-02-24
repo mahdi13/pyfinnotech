@@ -1,5 +1,4 @@
 from pyfinnotech.tests.helper import ApiClientTestCase
-from pyfinnotech.tests.mock_api_server import valid_mock_cards
 
 client_invalid_mock_cards = [
     '000000000000000',
