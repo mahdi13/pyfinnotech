@@ -2,7 +2,7 @@ import base64
 
 import ujson
 
-from pyfinnotech.const import ALL_SCOPE_CLIENT_CREDENTIALS
+from pyfinnotech.const import ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
 
 
 class Token:
@@ -89,7 +89,7 @@ class ClientCredentialToken(Token):
         ).get('result'))
 
 
-class AccessToken(Token):
+class FacilityAccessToken(Token):
     def refresh(self):
         pass
 
@@ -104,6 +104,27 @@ class AccessToken(Token):
 
     def revoke(self):
         raise NotImplementedError()
+
+    # noinspection PyProtectedMember
+    @classmethod
+    def fetch(cls, http_client):
+        url = '/dev/v2/oauth2/token'
+
+        encoded_basic_authentication = base64 \
+            .encodebytes(f'{http_client.client_id}:{http_client.client_secret}'.encode()) \
+            .decode().strip()
+        return cls(**http_client._execute(
+            uri=url,
+            body={
+                "grant_type": "client_credentials",
+                "response_codetype": "code",
+                "mobile": "",
+                "nid": http_client.client_national_id,
+                "scopes": ','.join(list(set(http_client.scopes) & set(ALL_SCOPE_AUTHORIZATION_TOKEN)))
+            },
+            method='post',
+            headers={'Authorization': f'Basic {encoded_basic_authentication}'}
+        ).get('result'))
 
     @property
     def user(self):

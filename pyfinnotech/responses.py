@@ -32,3 +32,10 @@ class IbanInquiryResponse(BaseFinnotechResponse):
         if len(self.payload.get('depositOwners')) != 1:
             return None
         return self.payload.get('depositOwners')[0].get('lastName', None)
+
+
+class StandardReliabilitySms(BaseFinnotechResponse):
+
+    @property
+    def result(self):
+        return self.payload.get('result', None)

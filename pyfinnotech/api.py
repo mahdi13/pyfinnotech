@@ -6,7 +6,7 @@ from uuid import uuid4
 import requests
 
 from pyfinnotech.const import URL_SANDBOX, URL_MAINNET, ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
-from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse
+from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse, StandardReliabilitySms
 from pyfinnotech.token import ClientCredentialToken, Token
 from pyfinnotech.exceptions import FinnotechException
 
@@ -898,3 +898,16 @@ class FinnotechApiClient:
             params={'phoneNumber': phone_number, 'otp': otp},
             token=self.client_credential,
         ).get('result')
+
+    def standard_reliability_sms(self, phone_number):
+
+        if phone_number is None or not re.match('^[0-9]{11}$', phone_number):
+            raise ValueError(f'Bad phone number: {phone_number}')
+
+        url = f'/credit/v2/clients/{self.client_id}/sendSms'
+
+        return StandardReliabilitySms(self._execute(
+            uri=url,
+            params={'phoneNumber': phone_number},
+            token=self.client_credential,
+        ).get('result'))
