@@ -5,8 +5,9 @@ from uuid import uuid4
 
 import requests
 
-from pyfinnotech.const import URL_SANDBOX, URL_MAINNET
-from pyfinnotech.token import ClientCredentialToken
+from pyfinnotech.const import URL_SANDBOX, URL_MAINNET, ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
+from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse
+from pyfinnotech.token import ClientCredentialToken, Token
 from pyfinnotech.exceptions import FinnotechException
 
 
@@ -20,6 +21,9 @@ class FinnotechApiClient:
             is_sandbox=False,
             logger: Logger = None,
             requests_extra_kwargs: dict = None,
+            client_credential_token=None,
+            client_credential_refresh_token=None,
+            authorization_token=None,
             base_url=None
     ):
         self.server_url = base_url or (URL_SANDBOX if is_sandbox is True else URL_MAINNET)
@@ -27,9 +31,14 @@ class FinnotechApiClient:
         self.client_id = client_id
         self.client_secret = client_secret
         self.client_national_id = client_national_id
-        self.scopes = scopes or []
+        self.scopes = scopes or ALL_SCOPE_CLIENT_CREDENTIALS + ALL_SCOPE_AUTHORIZATION_TOKEN
         self.requests_extra_kwargs = requests_extra_kwargs or {}
         self._client_credential_token = None
+        if client_credential_token is not None:
+            self._client_credential_token = ClientCredentialToken.load(
+                raw_token=client_credential_token,
+                refresh_token=client_credential_refresh_token
+            )
 
     @classmethod
     def _generate_track_id(cls):
@@ -43,7 +52,8 @@ class FinnotechApiClient:
             self._client_credential_token = ClientCredentialToken.fetch(self)
         return self._client_credential_token
 
-    def _execute(self, uri, method='get', params=None, headers=None, body=None, error_mapper=None):
+    def _execute(self, uri, method='get', params=None, headers=None, body=None, token: Token = None,
+                 error_mapper=None):
         params = params or dict()
         headers = headers or dict()
         track_id = self._generate_track_id()
@@ -52,14 +62,32 @@ class FinnotechApiClient:
                           f" on {uri} with id:{track_id}"
                           f" with parameters: {'.'.join(str(params))}")
 
+        if token is not None:
+            headers = {**headers, **token.generate_authorization_header()}
+
         try:
             response = requests.request(
                 method,
                 ''.join([self.server_url, uri]),
                 params=params,
                 headers=headers,
+                json=body,
                 **self.requests_extra_kwargs
             )
+
+            if response.status_code == 403:
+                self.logger.info('Trying to refresh token')
+                token.refresh(self)
+
+                response = requests.request(
+                    method,
+                    ''.join([self.server_url, uri]),
+                    params=params,
+                    headers=headers,
+                    json=body,
+                    **self.requests_extra_kwargs
+                )
+
             if response.status_code != 200:
                 raise FinnotechException(response.content.decode(), self.logger)
 
@@ -67,15 +95,6 @@ class FinnotechApiClient:
 
         except Exception as e:
             raise FinnotechException(f"Request error: {str(e)}", logger=self.logger)
-
-        return response
-
-    def _get_authorization_code(self):
-        """
-        https://sandboxbeta.finnotech.ir/v2/boomrang-get-authorizationCode-token.html?sandbox=true
-        :return:
-        """
-        pass
 
     def iban_inquiry(self, iban):
         """
@@ -162,11 +181,11 @@ class FinnotechApiClient:
             raise ValueError(f'Bad iban: {iban}')
 
         url = f'/oak/v2/clients/{self.client_id}/ibanInquiry'
-        return self._execute(
+        return IbanInquiryResponse(self._execute(
             uri=url,
-            headers=self.client_credential.generate_authorization_header(),
+            token=self.client_credential,
             params={'iban': iban}
-        )
+        ).get('result'))
 
     def card_inquiry(self, card):
         """
@@ -223,11 +242,11 @@ class FinnotechApiClient:
         if card is None or not re.match('^[0-9]{16}$', card):
             raise ValueError(f'Bad iban: {card}')
 
-        url = f'/oak/v2/clients/{self.client_id}/cards/{card}'
-        return self._execute(
+        url = f'/mpg/v2/clients/{self.client_id}/cards/{card}'
+        return CardInquiryResponse(self._execute(
             uri=url,
-            headers=self.client_credential.generate_authorization_header(),
-        ).get('result')
+            token=self.client_credential,
+        ).get('result'))
 
     def standard_reliability(self, national_id, phone_number, otp):
         """
@@ -877,5 +896,5 @@ class FinnotechApiClient:
         return self._execute(
             uri=url,
             params={'phoneNumber': phone_number, 'otp': otp},
-            headers=self.client_credential.generate_authorization_header(),
+            token=self.client_credential,
         ).get('result')

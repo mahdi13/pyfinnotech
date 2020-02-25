@@ -10,7 +10,10 @@ client_invalid_mock_ibans = [
 class IbanValidationTestCase(ApiClientTestCase):
     def test_server_validate_iban(self):
         for c in valid_mock_ibans:
-            self.assertEqual('02', self.api_client.iban_inquiry(c).get('result').get('depositStatus'))
+            result = self.api_client.iban_inquiry(c)
+            self.assertTrue(result.is_valid)
+            self.assertIsNotNone(result.owner_first_name)
+            self.assertIsNotNone(result.owner_last_name)
 
     def test_client_validate_iban(self):
         for c in client_invalid_mock_ibans:

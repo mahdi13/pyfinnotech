@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 dependencies = [
     'requests',
+    'ujson',
     'restfulpy == 0.40.1',
     'nanohttp == 0.26.1',
     'pymlconf == 0.8.6',

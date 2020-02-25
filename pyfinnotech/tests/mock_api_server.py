@@ -119,6 +119,7 @@ class MockCardController(RestController):
 
         raise HttpBadRequest()
 
+
 class MockIbanController(RestController):
 
     @json
@@ -148,6 +149,7 @@ class MockIbanController(RestController):
 
         raise HttpBadRequest()
 
+
 class FinnotechRootMockController(RestController):
     cards = MockCardController()
     ibanInquiry = MockIbanController()
@@ -159,7 +161,15 @@ class FinnotechRootMockController(RestController):
                 if remaining_paths[2] == 'clients':
                     from pyfinnotech.tests.helper import valid_mock_client_id
                     if remaining_paths[3] == valid_mock_client_id:
-                        if remaining_paths[4] in ['cards', 'ibanInquiry']:
+                        if remaining_paths[4] in ['ibanInquiry']:
+                            return super().__call__(*remaining_paths[4:])
+
+        elif remaining_paths[0] == 'mpg':
+            if remaining_paths[1] == 'v2':
+                if remaining_paths[2] == 'clients':
+                    from pyfinnotech.tests.helper import valid_mock_client_id
+                    if remaining_paths[3] == valid_mock_client_id:
+                        if remaining_paths[4] in ['cards']:
                             return super().__call__(*remaining_paths[4:])
 
         elif remaining_paths[0] == 'dev':

@@ -1,5 +1,7 @@
 import base64
 
+import ujson
+
 from pyfinnotech.const import ALL_SCOPE_CLIENT_CREDENTIALS
 
 
@@ -11,13 +13,14 @@ class Token:
     def __init__(self):
         pass
 
+    @property
     def is_valid(self):
         raise NotImplementedError()
 
     def revoke(self):
         raise NotImplementedError()
 
-    def refresh(self):
+    def refresh(self, *args, **kwargs):
         raise NotImplementedError()
 
     def generate_authorization_header(self):
@@ -35,14 +38,27 @@ class ClientCredentialToken(Token):
         self.life_time = kwargs.get('lifeTime', None)
         self.scopes = kwargs.get('scopes', None)
 
+    @property
     def is_valid(self):
-        raise True
+        return True
 
     def revoke(self):
         raise NotImplementedError()
 
-    def refresh(self):
-        pass
+    def refresh(self, http_client):
+        # TODO: We should ues refresh token, but it's not based on RFC, so it's almost unusable
+        new_token = self.__class__.fetch(http_client)
+        self.token = new_token.token
+        self.refresh_token = new_token.refresh_token
+        self.creation_date = new_token.creation_date
+        self.life_time = new_token.life_time
+        self.scopes = new_token.scopes
+
+    @classmethod
+    def load(cls, raw_token, refresh_token=None):
+        payload = ujson.loads(base64.decodebytes((raw_token.split('.')[1] + '==').encode()).decode())
+        payload.setdefault('refreshToken', refresh_token)
+        return cls(value=raw_token, **payload)
 
     def generate_authorization_header(self):
         return {
@@ -73,9 +89,16 @@ class ClientCredentialToken(Token):
         ).get('result'))
 
 
-class AccessToken:
+class AccessToken(Token):
+    def refresh(self):
+        pass
+
+    def generate_authorization_header(self):
+        pass
+
     __token_type__ = 'CODE'
 
+    @property
     def is_valid(self):
         raise NotImplementedError()
 
