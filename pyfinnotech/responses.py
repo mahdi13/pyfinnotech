@@ -118,6 +118,10 @@ class NationalIdVerification(BaseFinnotechResponse):
         return self.payload.get('deathStatus', None) == 'زنده'
 
     @property
+    def is_man(self):
+        return self.payload.get('gender', None) == 'مرد'
+
+    @property
     def is_valid(self):
         return self.status == 'DONE'
 
