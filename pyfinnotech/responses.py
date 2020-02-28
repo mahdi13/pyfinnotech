@@ -59,48 +59,68 @@ class AuthorizationSmsVerify(BaseFinnotechResponse):
         return self.payload.get('code', None)
 
 
-class AuthorizationSmsToken(BaseFinnotechResponse):
+class NationalIdVerification(BaseFinnotechResponse):
 
     @property
-    def client_id(self):
-        return self.payload.get('clientId', None)
+    def national_code(self):
+        return self.payload.get('nationalCode', None)
 
     @property
-    def scopes(self):
-        return self.payload.get('scopes', None)
+    def birth_date(self):
+        return self.payload.get('birthDate', None)
 
     @property
-    def deposits(self):
-        return self.payload.get('deposits', None)
+    def status(self):
+        return self.payload.get('status', None)
 
     @property
-    def lifetime(self):
-        return self.payload.get('lifetime', None)
+    def full_name(self):
+        return self.payload.get('fullName', None)
 
     @property
-    def bank(self):
-        return self.payload.get('bank', None)
+    def first_name(self):
+        return self.payload.get('firstName', None)
 
     @property
-    def type(self):
-        return self.payload.get('type', None)
+    def last_name(self):
+        return self.payload.get('lastName', None)
 
     @property
-    def creation_date(self):
-        return self.payload.get('creationDate', None)
+    def full_name_similarity(self):
+        return self.payload.get('fullNameSimilarity', None)
 
     @property
-    def user_national_id(self):
-        return self.payload.get('user_national_id', None)
+    def first_name_similarity(self):
+        return self.payload.get('firstNameSimilarity', None)
 
     @property
-    def auth_type(self):
-        return self.payload.get('auth_type', None)
+    def last_name_similarity(self):
+        return self.payload.get('lastNameSimilarity', None)
 
     @property
-    def refresh_token(self):
-        return self.payload.get('refreshToken', None)
+    def gender(self):
+        return self.payload.get('gender', None)
 
     @property
-    def access_token(self):
-        return self.payload.get('value', None)
+    def gender_similarity(self):
+        return self.payload.get('genderSimilarity', None)
+
+    @property
+    def father_name(self):
+        return self.payload.get('fatherName', None)
+
+    @property
+    def father_name_similarity(self):
+        return self.payload.get('fatherNameSimilarity', None)
+
+    @property
+    def is_alive(self):
+        return self.payload.get('deathStatus', None) == 'زنده'
+
+    @property
+    def is_valid(self):
+        return self.status == 'DONE'
+
+    @property
+    def description(self):
+        return self.payload.get('description', None)

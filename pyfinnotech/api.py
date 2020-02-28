@@ -6,8 +6,9 @@ from uuid import uuid4
 import requests
 
 from pyfinnotech.const import URL_SANDBOX, URL_MAINNET, ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
-from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse, StandardReliabilitySms
-from pyfinnotech.token import ClientCredentialToken, Token
+from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse, StandardReliabilitySms, \
+    NationalIdVerification
+from pyfinnotech.token import ClientCredentialToken, Token, FacilitySmsAccessTokenToken
 from pyfinnotech.exceptions import FinnotechException
 
 
@@ -900,15 +901,48 @@ class FinnotechApiClient:
             token=self.client_credential,
         ).get('result')
 
-    def standard_reliability_sms(self, phone_number):
+    def national_id_verification(self, access_token: FacilitySmsAccessTokenToken,
+                                 national_id,
+                                 birth_date: str,
+                                 first_name=None, last_name=None, full_name=None,
+                                 father_name=None, gender=None) -> NationalIdVerification:
 
-        if phone_number is None or not re.match('^[0-9]{11}$', phone_number):
-            raise ValueError(f'Bad phone number: {phone_number}')
+        if national_id is None or not re.match('^[0-9]{10}$', national_id):
+            raise ValueError(f'Bad national id: {national_id}')
 
-        url = f'/credit/v2/clients/{self.client_id}/sendSms'
+        if birth_date is None or not re.match('^[0-9]{4}/[0-1][0-9]/[0-9]{2}$', birth_date):
+            raise ValueError(f'Bad birth_date: {birth_date}')
 
-        return StandardReliabilitySms(self._execute(
+        if gender is None or not re.match('^(مرد|زن)$', gender):
+            raise ValueError(f'Bad gender: {gender}')
+
+        if full_name is None and first_name is None and last_name is None:
+            raise ValueError(f'Please set at least one of: full_name, first_name, last_name')
+
+        if full_name is None:
+            full_name = f'{first_name} {last_name}'
+
+        url = f'/facility/v2/clients/{self.client_id}/users/{national_id}/sms/nidVerification'
+
+        params = dict(birthDate=birth_date)
+
+        if full_name is not None:
+            params['fullName'] = full_name
+
+        if first_name is not None:
+            params['firstName'] = first_name
+
+        if last_name is not None:
+            params['lastName'] = last_name
+
+        if father_name is not None:
+            params['fatherName'] = father_name
+
+        if gender is not None:
+            params['gender'] = gender
+
+        return NationalIdVerification(self._execute(
             uri=url,
-            params={'phoneNumber': phone_number},
-            token=self.client_credential,
+            params=params,
+            token=access_token,
         ).get('result'))

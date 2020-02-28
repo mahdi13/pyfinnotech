@@ -3,7 +3,7 @@ import base64
 import ujson
 
 from pyfinnotech.const import ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
-from pyfinnotech.responses import AuthorizationSmsToken, AuthorizationSmsVerify, AuthorizationTokenSmsSend
+from pyfinnotech.responses import AuthorizationSmsVerify, AuthorizationTokenSmsSend
 
 
 class Token:
@@ -106,6 +106,10 @@ class FacilitySmsAccessTokenToken(Token):
         self.creation_date = kwargs.get('creationDate', None)
         self.life_time = kwargs.get('lifeTime', None)
         self.scopes = kwargs.get('scopes', None)
+        self.deposits = kwargs.get('deposits', None)
+        self.bank = kwargs.get('bank', None)
+        self.type = kwargs.get('type', None)
+        self.user_national_id = kwargs.get('userId', None)
 
     @property
     def is_valid(self):
@@ -114,14 +118,34 @@ class FacilitySmsAccessTokenToken(Token):
     def revoke(self):
         raise NotImplementedError()
 
+    # noinspection PyProtectedMember
     def refresh(self, http_client):
-        # TODO: We should ues refresh token, but it's not based on RFC, so it's almost unusable
-        new_token = self.__class__.fetch(http_client)
+        url = '/dev/v2/oauth2/token'
+
+        encoded_basic_authentication = base64 \
+            .encodebytes(f'{http_client.client_id}:{http_client.client_secret}'.encode()) \
+            .decode().strip()
+        new_token = self.__class__(**http_client._execute(
+            uri=url,
+            body={
+                "grant_type": "refresh_token",
+                "token_type": "CODE",
+                "auth_type": 'SMS',
+                "refresh_token": self.refresh_token
+            },
+            method='post',
+            headers={'Authorization': f'Basic {encoded_basic_authentication}'}
+        ).get('result'))
+
         self.token = new_token.token
         self.refresh_token = new_token.refresh_token
         self.creation_date = new_token.creation_date
         self.life_time = new_token.life_time
         self.scopes = new_token.scopes
+        self.deposits = new_token.deposits
+        self.bank = new_token.bank
+        self.type = new_token.type
+        self.user_national_id = new_token.user_national_id
 
     @classmethod
     def load(cls, raw_token, refresh_token=None):
@@ -133,29 +157,6 @@ class FacilitySmsAccessTokenToken(Token):
         return {
             'Authorization': f'Bearer {self.token}'
         }
-
-    # noinspection PyProtectedMember
-    @classmethod
-    def fetch(cls, http_client):
-        """
-        https://devbeta.finnotech.ir/v2/boomrang-get-clientCredential-token.html
-        :return:
-        """
-        url = '/dev/v2/oauth2/token'
-
-        encoded_basic_authentication = base64 \
-            .encodebytes(f'{http_client.client_id}:{http_client.client_secret}'.encode()) \
-            .decode().strip()
-        return cls(**http_client._execute(
-            uri=url,
-            body={
-                "grant_type": "client_credentials",
-                "nid": http_client.client_national_id,
-                "scopes": ','.join(list(set(http_client.scopes) & set(ALL_SCOPE_CLIENT_CREDENTIALS)))
-            },
-            method='post',
-            headers={'Authorization': f'Basic {encoded_basic_authentication}'}
-        ).get('result'))
 
     # noinspection PyProtectedMember
     @classmethod
@@ -203,12 +204,12 @@ class FacilitySmsAccessTokenToken(Token):
 
     # noinspection PyProtectedMember
     @classmethod
-    def request_token(cls, http_client, code, redirect_url) -> AuthorizationSmsToken:
+    def request_token(cls, http_client, code, redirect_url):
         url = '/dev/v2/oauth2/token'
 
         encoded_basic_authentication = \
             cls.build_basic_authentication_token(http_client.client_id, http_client.client_secret)
-        return AuthorizationSmsToken(http_client._execute(
+        return cls(**http_client._execute(
             uri=url,
             body={
                 "grant_type": "authorization_code",
