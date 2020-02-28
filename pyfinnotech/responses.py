@@ -2,6 +2,10 @@ class BaseFinnotechResponse:
     def __init__(self, payload):
         self.payload = payload
 
+    @property
+    def track_id(self):
+        return self.payload.get('trackId', None)
+
 
 class CardInquiryResponse(BaseFinnotechResponse):
 
@@ -39,3 +43,64 @@ class StandardReliabilitySms(BaseFinnotechResponse):
     @property
     def result(self):
         return self.payload.get('result', None)
+
+
+class AuthorizationTokenSmsSend(BaseFinnotechResponse):
+
+    @property
+    def sms_sent(self):
+        return self.payload.get('smsSent', None)
+
+
+class AuthorizationSmsVerify(BaseFinnotechResponse):
+
+    @property
+    def code(self):
+        return self.payload.get('code', None)
+
+
+class AuthorizationSmsToken(BaseFinnotechResponse):
+
+    @property
+    def client_id(self):
+        return self.payload.get('clientId', None)
+
+    @property
+    def scopes(self):
+        return self.payload.get('scopes', None)
+
+    @property
+    def deposits(self):
+        return self.payload.get('deposits', None)
+
+    @property
+    def lifetime(self):
+        return self.payload.get('lifetime', None)
+
+    @property
+    def bank(self):
+        return self.payload.get('bank', None)
+
+    @property
+    def type(self):
+        return self.payload.get('type', None)
+
+    @property
+    def creation_date(self):
+        return self.payload.get('creationDate', None)
+
+    @property
+    def user_national_id(self):
+        return self.payload.get('user_national_id', None)
+
+    @property
+    def auth_type(self):
+        return self.payload.get('auth_type', None)
+
+    @property
+    def refresh_token(self):
+        return self.payload.get('refreshToken', None)
+
+    @property
+    def access_token(self):
+        return self.payload.get('value', None)

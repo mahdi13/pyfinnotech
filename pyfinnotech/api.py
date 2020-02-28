@@ -42,7 +42,7 @@ class FinnotechApiClient:
 
     @classmethod
     def _generate_track_id(cls):
-        return uuid4().hex
+        return uuid4().__str__()
 
     @property
     def client_credential(self) -> ClientCredentialToken:
@@ -53,11 +53,12 @@ class FinnotechApiClient:
         return self._client_credential_token
 
     def _execute(self, uri, method='get', params=None, headers=None, body=None, token: Token = None,
-                 error_mapper=None):
+                 error_mapper=None, no_track_id=False):
         params = params or dict()
         headers = headers or dict()
-        track_id = self._generate_track_id()
-        params.setdefault('trackId', track_id)
+        track_id = self._generate_track_id() if no_track_id is False else None
+        if track_id is not None:
+            params.setdefault('trackId', track_id)
         self.logger.debug(f"Requesting"
                           f" on {uri} with id:{track_id}"
                           f" with parameters: {'.'.join(str(params))}")
