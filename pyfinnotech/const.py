@@ -7,6 +7,9 @@ BANK_IRANZAMIN = '069'
 BANK_EGHTESADENOVIN = '055'
 BANK_ANSAR = '063'
 
+GENDER_MALE = 'مرد'
+GENDER_FEMALE = 'زن'
+
 SCOPE_OAK_WITHDRAWAL_FROM_EXECUTE = 'oak_withdrawal-from:execute'
 SCOPE_OAK_TRANSFER_TO_EXECUTE = 'oak_transfer-to:execute'
 SCOPE_OAK_INQUIRY_TRANSFER_GET = 'oak_inquiry-transfer:get'

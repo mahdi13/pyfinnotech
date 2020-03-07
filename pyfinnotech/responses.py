@@ -22,7 +22,7 @@ class IbanInquiryResponse(BaseFinnotechResponse):
 
     @property
     def is_valid(self):
-        return self.payload.get('depositStatus', None) == '02'
+        return self.payload.get('depositStatus', None) in ['02', '2']  # FIXME: WTF
 
     @property
     def owner_first_name(self):
