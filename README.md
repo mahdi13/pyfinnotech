@@ -38,6 +38,11 @@ Inquire Card:
 result = api_client.card_inquiry('0000000000000000')
 ```
 
+Card to iban:
+```python
+result = api_client.card_to_iban('0000000000000000')
+```
+
 ### Sms Authorization Token
 
 Retrieve sms authorization token:
