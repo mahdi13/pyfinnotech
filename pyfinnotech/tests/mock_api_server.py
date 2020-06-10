@@ -173,6 +173,37 @@ class MockIbanController(RestController):
         raise HttpBadRequest()
 
 
+class MockCardToIbanController(RestController):
+
+    @json
+    @authorize_client_credential
+    def get(self):
+        card = context.query_string.get('card')
+        if card in valid_mock_cards:
+            return {
+                "trackId": "cardToIban-029",
+                "result": {
+                    "IBAN": "IR910800005000115426432001"
+                    , "bankName": "قرض الحسنه رسالت"
+                    , "deposit": "10.6423499.1"
+                    , "card": "6362141081734437"
+                    , "depositStatus": "02"
+                    , "depositDescription": "حساب فعال است"
+                    , "depositComment": "سپرده حقيقي قرض الحسنه پس انداز حقيقي ريالی شیما کیایی"
+                    , "depositOwners": [
+                        {
+                            "firstName": "شیما"
+                            , "lastName": "کیایی"
+                        }
+                    ],
+                    "alertCode": "01"
+                },
+                "status": "DONE"
+            }
+
+        raise HttpBadRequest()
+
+
 class MockNationalIdVerification(RestController):
 
     @json
@@ -206,6 +237,7 @@ class FinnotechRootMockController(RestController):
     ibanInquiry = MockIbanController()
     oauth2 = MockOauthController()
     nidVerification = MockNationalIdVerification()
+    cardToIban = MockCardToIbanController()
 
     def __call__(self, *remaining_paths):
         if remaining_paths[0] == 'oak':
@@ -238,5 +270,7 @@ class FinnotechRootMockController(RestController):
                             if remaining_paths[6] in ['sms']:
                                 if remaining_paths[7] in ['nidVerification']:
                                     return super().__call__(*remaining_paths[7:])
+                        elif remaining_paths[4] in ['cardToIban']:
+                            return super().__call__(*remaining_paths[4:])
 
         raise HttpNotFound()

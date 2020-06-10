@@ -7,7 +7,7 @@ import requests
 
 from pyfinnotech.const import URL_SANDBOX, URL_MAINNET, ALL_SCOPE_CLIENT_CREDENTIALS, ALL_SCOPE_AUTHORIZATION_TOKEN
 from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse, StandardReliabilitySms, \
-    NationalIdVerification
+    NationalIdVerification, CardToIbanResponse
 from pyfinnotech.token import ClientCredentialToken, Token, FacilitySmsAccessTokenToken
 from pyfinnotech.exceptions import FinnotechException
 
@@ -242,7 +242,7 @@ class FinnotechApiClient:
         # TODO: Add luhn check to reduce api call rate
 
         if card is None or not re.match('^[0-9]{16}$', card):
-            raise ValueError(f'Bad iban: {card}')
+            raise ValueError(f'Bad card: {card}')
 
         url = f'/mpg/v2/clients/{self.client_id}/cards/{card}'
         return CardInquiryResponse(self._execute(
@@ -945,4 +945,112 @@ class FinnotechApiClient:
             uri=url,
             params=params,
             token=access_token,
+        ).get('result'))
+
+    def card_to_iban(self, card):
+        """
+        شرح: سرویس اطلاعات شبا
+
+        اسکوپ: facility:card-to-iban:get
+
+        رویکرد: Client-Credential
+
+        {address}/facility/v2/clients/{clientId}/cardToIban?trackId={trackId}&card={card}
+        https://apibeta.finnotech.ir :address
+        Notes
+        اسامی بانک‌هایی که این سرویس برای آن‌ها قابل انجام است:
+
+        بانک آینده
+
+        بانک اقتصاد نوین
+        بانک کشاورزی
+        بانک سامان
+        بانک سرمایه
+        بانک پاسارگاد
+        بانک صادرات
+        بانک ملی
+        بانک رسالت
+        بانک دی
+        بانک انصار
+        بانک ملت
+        بانک شهر
+        بانک مسکن
+        بانک ایران زمین
+        بانک پارسیان
+        Headers
+        مقادیر زیر باید در هدر قرار بگیرد
+
+        Authorization : Bearer {Token}
+        برای فراخوانی این سرویس باید از توکن CLIENT_CREDENTIAL استفاده نمایید.
+        URI Parameters
+        clientId : (اجباری) شناسه کلاینت
+        Query Parameters
+        trackId: اختیاری (string) ‫ کد پیگیری، رشته ای اختیاری با طول حداکثر ۴۰ کاراکتر شامل حرف و عدد. در صورت ارسال trackId، فراخوانی سرویس خود را با همین مقدار استعلام و پیگیری کنید.(در گزارش فراخوانی سرویس ها با همین رشته نتیجه را ببینید). در صورتیکه که این فیلد را ارسال نکنید یک رشته UUID برای این فراخوانی در نظر گرفته میشود و در پاسخ فراخوانی برگردانده میشود.
+        example: cardToIban-029
+        card: شماره کارت
+        example: 6362141081734437
+        Results Format
+        Successful result format (status code 200)
+          {
+             "trackId": "cardToIban-029",
+             "result": {
+              "IBAN": "IR910800005000115426432001"
+            , "bankName": "قرض الحسنه رسالت"
+            , "deposit": "10.6423499.1"
+            , "card" : "6362141081734437"
+            , "depositStatus": "02"
+            , "depositDescription": "حساب فعال است"
+            , "depositComment": "سپرده حقيقي قرض الحسنه پس انداز حقيقي ريالی شیما کیایی"
+            , "depositOwners": [
+                  {
+                    "firstName": "شیما"
+                  , "lastName": "کیایی"
+                  }
+              ],
+              "alertCode": "01"
+          },
+          , "status": "DONE"
+          }
+        result: آبجکتی از پاسخ سرویس شامل:
+        IBAN: شماره شبا
+        bankName: نام بانک
+        deposit: شماره حساب
+        card: شماره کارت
+        depositStatus: میتواند مقادیر زیر را بگیرد
+        ‌02 : حساب فعال است
+        ‌03 : حساب مسدود با قابلیت واریز
+        ‌04 : حساب مسدود بدون قابلیت واریز
+        ‌05 : حساب راکد است
+        ‌06 : بروز خطادر پاسخ دهی , شرح خطا در فیلد توضیحات است
+        ‌07 : سایر موارد
+        depositDescription: شرح حساب
+        depositComment:
+        depositOwners: آرایه ای از صاحبان حساب
+        firstName: نام
+        lastName: نام خانوادگی
+        alertCode: میتواند مقادیر زیر را بگیرد
+        ‌01 : Invalid IBAN
+        ‌02 : Invalid Request
+        ‌03 : Message Authentication Failed
+        ‌04 : Invalid Bank Bic Code
+        ‌05 : Destination Time Out
+        ‌06 : Destination Not Found
+        status: وضعیت فراخوانی سرویس
+        DONE: فراخوانی موفق سرویس
+        FAILED: فراخوانی ناموفق سرویس
+        error: جزییات خطا (در صورت بروز خطا)
+        trackId: ‌ کد پیگیری، اگر ارسال شده باشد همان مقدار و در غیر اینصورت یک رشته تصادفی تولید و برگردانده میشود
+
+        """
+
+        # TODO: Add luhn check to reduce api call rate
+
+        if card is None or not re.match('^[0-9]{16}$', card):
+            raise ValueError(f'Bad card: {card}')
+
+        url = f'/facility/v2/clients/{self.client_id}/cardToIban'
+        return CardToIbanResponse(self._execute(
+            uri=url,
+            token=self.client_credential,
+            params={'card': card}
         ).get('result'))

@@ -7,6 +7,49 @@ class BaseFinnotechResponse:
         return self.payload.get('trackId', None)
 
 
+class CardToIbanResponse(BaseFinnotechResponse):
+
+    @property
+    def is_valid(self):
+        return self.payload.get('depositStatus', None) in ['02', '2']  # FIXME: WTF
+
+    @property
+    def iban(self):
+        return self.payload.get('IBAN', None)
+
+    @property
+    def bank_name(self):
+        return self.payload.get('bankName', None)
+
+    @property
+    def deposit(self):
+        return self.payload.get('deposit', None)
+
+    @property
+    def card(self):
+        return self.payload.get('card', None)
+
+    @property
+    def deposit_status(self):
+        return self.payload.get('depositStatus', None)
+
+    @property
+    def deposit_description(self):
+        return self.payload.get('depositDescription', None)
+
+    @property
+    def deposit_comment(self):
+        return self.payload.get('depositComment', None)
+
+    @property
+    def deposit_owners(self):
+        return self.payload.get('depositOwners', [])
+
+    @property
+    def alert_code(self):
+        return self.payload.get('alertCode', None)
+
+
 class CardInquiryResponse(BaseFinnotechResponse):
 
     @property
