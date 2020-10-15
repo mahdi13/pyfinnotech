@@ -9,7 +9,7 @@ from pyfinnotech.const import URL_SANDBOX, URL_MAINNET, ALL_SCOPE_CLIENT_CREDENT
 from pyfinnotech.responses import IbanInquiryResponse, CardInquiryResponse, StandardReliabilitySms, \
     NationalIdVerification, CardToIbanResponse
 from pyfinnotech.token import ClientCredentialToken, Token, FacilitySmsAccessTokenToken
-from pyfinnotech.exceptions import FinnotechException
+from pyfinnotech.exceptions import FinnotechException, FinnotechHttpException
 
 
 class FinnotechApiClient:
@@ -91,7 +91,7 @@ class FinnotechApiClient:
                 )
 
             if response.status_code != 200:
-                raise FinnotechException(response.content.decode(), self.logger)
+                raise FinnotechHttpException(response, self.logger)
 
             return response.json()
 
