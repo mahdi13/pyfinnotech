@@ -13,7 +13,7 @@ class FinnotechHttpException(Exception):
         :param response: return value of `requests` http call
         """
         message = response.content.decode()
-        self.message = response.message
+        self.message = message
         self.status_code = response.status_code
 
         try:
