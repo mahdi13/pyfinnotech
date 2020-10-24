@@ -95,6 +95,9 @@ class FinnotechApiClient:
 
             return response.json()
 
+        except FinnotechHttpException as e:
+            raise e
+
         except Exception as e:
             raise FinnotechException(f"Request error: {str(e)}", logger=self.logger)
 
