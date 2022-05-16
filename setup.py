@@ -11,7 +11,7 @@ test_dependencies = ['nose', 'codecov']
 
 setup(
     name="pyfinnotech",
-    version='0.2.14',
+    version='0.2.15',
     author="mahdi13",
     tests_require=test_dependencies,
     extras_require={'test': test_dependencies},
