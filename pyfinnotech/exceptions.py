@@ -8,11 +8,13 @@ class FinnotechException(Exception):
 
 
 class FinnotechHttpException(Exception):
-    def __init__(self, response, logger):
+    def __init__(self, response, logger, underlying_exception: Exception = None):
         """
         :param response: return value of `requests` http call
         """
         message = response.content.decode()
+        if underlying_exception is not None:
+            message += f'\n Underlying exception: {underlying_exception}'
         self.message = message
         self.status_code = response.status_code
 

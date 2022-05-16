@@ -1,5 +1,6 @@
 import logging
 import re
+from json import JSONDecodeError
 from logging import Logger
 from uuid import uuid4
 
@@ -93,7 +94,14 @@ class FinnotechApiClient:
             if response.status_code != 200:
                 raise FinnotechHttpException(response, self.logger)
 
-            return response.json()
+            try:
+                return response.json()
+            except JSONDecodeError as e:
+                raise FinnotechHttpException(
+                    response=response,
+                    logger=self.logger,
+                    underlying_exception=e
+                )
 
         except FinnotechHttpException as e:
             raise e
